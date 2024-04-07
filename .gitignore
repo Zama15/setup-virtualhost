@@ -1,0 +1,2 @@
+# Ignore the .conf files in all the project directories
+**/*.conf

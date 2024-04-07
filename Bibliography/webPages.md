@@ -1,0 +1,1 @@
+- [Validating an IP Address in a Bash Script](https://www.linuxjournal.com/content/validating-ip-address-bash-script)
