@@ -167,11 +167,36 @@ while [[ $# > 0 ]]; do
     -cp|--conf-path)
       if [[ -z "$2" ]]; then
         echo_error "TypeError: option $key requires an argument"
-      else
-        conf_path=$(realpath -m "$2")
-        if [[ ! -d "$conf_path" ]]; then
-          echo_error "Invalid argument: $conf_path must be a valid directory"
+        exit 1
+      fi
+
+      resolved_path=$(realpath -m "$2") || {
+        echo_error "Invalid argument: $2 cannot be resolved"
+        exit 1
+      }
+
+      if [[ -d "$resolved_path" ]]; then
+        # It is a directory
+        conf_path="$resolved_path"
+      elif [[ "$resolved_path" =~ /[^/]+$ ]]; then
+        # It is a file
+        if [[ "$resolved_path" =~ \.conf$ ]]; then
+          # It is a conf file
+          APACHE_CONF_FILE=$(basename "$resolved_path" .conf)
+          conf_path=$(dirname "$resolved_path")
+        else
+          # It is a file without extension
+          APACHE_CONF_FILE="${resolved_path##*/}"
+          conf_path="${resolved_path%/*}"
         fi
+
+        if ! conf_path=$(realpath -m "$conf_path"); then
+          echo_error "Invalid directory in path: ${conf_path:-$2}"
+          exit 1
+        fi
+      else
+        echo_error "Invalid argument: $conf_path must be a valid directory or file"
+        exit 1
       fi
       shift
       ;;
@@ -350,9 +375,13 @@ else
 fi
 
 echo "Restarting Apache..."
-service apache2 restart
+if ! service apache2 restart > /dev/null 2>&1; then
+  echo -e "\e[31mError: apache2 could not be restarted, restart it manually\e[0m"
+  service apache2 restart
+else
+  echo -e "\e[32mApache has been configured successfully\e[0m"
+fi
 
-echo -e "\e[32mApache has been configured successfully\e[0m"
 echo -e "$INFO_STR"
 
 exit 0
