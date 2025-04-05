@@ -34,10 +34,9 @@ To grant the necessary permissions, run the following command:
 ```
 sudo chmod +x /path/to/directory
 ```
-To enable .htaccess on the project, run the following command:
-```
-sudo a2enmod rewrite
-```
+To enable .htaccess on the project:
+- Ubuntu: `sudo a2enmod rewrite`
+- Arch: Uncomment the line `LoadModule rewrite_module modules/mod_rewrite.so` in `/etc/httpd/conf/httpd.conf`
 
 ## Options
 ```
